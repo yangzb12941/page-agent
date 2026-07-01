@@ -8,12 +8,18 @@ import {
 
 /**
  * Viewport expansion for DOM tree extraction.
+ * DOM 树提取的视口扩展。
  * -1 means full page (no viewport restriction)
+ * -1 表示整页（无视口限制）
  * 0 means viewport only
+ * 0 表示仅视口
  * positive values expand the viewport by that many pixels
+ * 正值表示将视口扩展相应像素数
  *
  * @note Since isTopElement depends on elementFromPoint,
+ * @note 由于 isTopElement 依赖于 elementFromPoint，
  * it returns null when out of viewport, this feature has no practical use, only differ between -1 and 0
+ * 当元素超出视口时返回 null，该功能实际上没有实际用途，仅在 -1 和 0 之间有区别。
  */
 const DEFAULT_VIEWPORT_EXPANSION = -1
 
@@ -31,12 +37,15 @@ export interface DomConfig {
 
 	/**
 	 * Preserve semantic landmark tags in dehydrated output even if not interactive
+	 * 即使不可交互，在脱水输出中也保留语义标记标签
 	 * @note maybe confusing for LLM combining with page scrolling, use with caution
+	 * @note 与页面滚动结合使用可能会让 LLM 感到困惑，请谨慎使用
 	 **/
 	keepSemanticTags?: boolean
 }
 
 // TODO: corresponding roles
+// TODO: 对应的角色
 const SEMANTIC_TAGS = new Set([
 	'nav',
 	'menu',
@@ -99,6 +108,7 @@ export function getFlatTree(config: DomConfig): FlatDomTree {
 		if (node.isInteractive && node.ref) {
 			const ref = node.ref as HTMLElement
 			// @note 这样太严格，元素是可以跨页面存在的
+			// @note This is too strict; elements can exist across pages.
 			// if (newElementsCache.get(ref) !== currentUrl) {
 			if (!newElementsCache.has(ref)) {
 				newElementsCache.set(ref, currentUrl)
@@ -149,6 +159,7 @@ function matchAttributes(
 
 /**
  * elementsToString 内部使用的类型
+ * Internal type used by elementsToString
  */
 interface TreeNode {
 	type: 'text' | 'element'
@@ -156,8 +167,10 @@ interface TreeNode {
 	children: TreeNode[]
 	isVisible: boolean
 	// Text node properties
+	// 文本节点属性
 	text?: string
 	// Element node properties
+	// 元素节点属性
 	tagName?: string
 	attributes?: Record<string, string>
 	isInteractive?: boolean
@@ -170,7 +183,10 @@ interface TreeNode {
 /**
  * 对应 python 中的 views::clickable_elements_to_string,
  * 将 dom 信息处理成适合 llm 阅读的文本格式
+ * Corresponds to views::clickable_elements_to_string in Python,
+ * processes DOM information into a text format suitable for LLM reading.
  * @形如
+ * @Example
  * ``` text
  * [0]<a aria-label=page-agent.js 首页 />
  * [1]<div >P />
@@ -185,10 +201,14 @@ interface TreeNode {
  * 无需后端
  * ```
  * 其中可交互元素用序号标出，提示llm可以用序号操作。
+ * Interactive elements are marked with numbers, prompting the LLM to use those numbers.
  * 缩进代表父子关系。
+ * Indentation represents parent-child relationships.
  * 普通文本则直接列出来。
+ * Plain text is listed directly.
  *
  * @todo 数据脱敏过滤器
+ * @todo Data desensitization filter
  */
 export function flatTreeToString(
 	flatTree: FlatDomTree,
@@ -211,24 +231,29 @@ export function flatTreeToString(
 		'aria-checked',
 
 		// @edit added for better form handling
+		// @edit 添加以改善表单处理
 		'id',
 		'for',
 
 		// for jump check
+		// 用于跳转检查
 		'target',
 
 		// absolute position dropdown menu
+		// 绝对定位下拉菜单
 		'aria-haspopup',
 		'aria-controls',
 		'aria-owns',
 
 		// content editable
+		// 内容可编辑
 		'contenteditable',
 	]
 
 	const includeAttrs = [...includeAttributes, ...DEFAULT_INCLUDE_ATTRIBUTES]
 
 	// Helper function to cap text length
+	// 辅助函数：限制文本长度
 	const capTextLength = (text: string, maxLength: number): string => {
 		if (text.length > maxLength) {
 			return text.substring(0, maxLength) + '...'
@@ -237,6 +262,7 @@ export function flatTreeToString(
 	}
 
 	// Build tree structure from flat map
+	// 从扁平映射构建树结构
 	const buildTreeNode = (nodeId: string): TreeNode | null => {
 		const node = flatTree.map[nodeId]
 		if (!node) return null
@@ -259,6 +285,7 @@ export function flatTreeToString(
 					const child = buildTreeNode(childId)
 					if (child) {
 						child.parent = null // Will be set later
+						// 稍后设置
 						children.push(child)
 					}
 				}
@@ -281,6 +308,7 @@ export function flatTreeToString(
 	}
 
 	// Set parent references
+	// 设置父引用
 	const setParentReferences = (node: TreeNode, parent: TreeNode | null = null) => {
 		node.parent = parent
 		for (const child of node.children) {
@@ -289,12 +317,14 @@ export function flatTreeToString(
 	}
 
 	// Build root node
+	// 构建根节点
 	const rootNode = buildTreeNode(flatTree.rootId)
 	if (!rootNode) return ''
 
 	setParentReferences(rootNode)
 
 	// Helper to check if text node has parent with highlight index
+	// 辅助函数：检查文本节点是否有带高亮索引的父节点
 	const hasParentWithHighlightIndex = (node: TreeNode): boolean => {
 		let current = node.parent
 		while (current) {
@@ -307,11 +337,13 @@ export function flatTreeToString(
 	}
 
 	// Helper to check if parent is top element
+	// 辅助函数：检查父节点是否为顶层元素
 	// const isParentTopElement = (node: TreeNode): boolean => {
 	// 	return node.parent?.type === 'element' && node.parent.isTopElement === true
 	// }
 
 	// Main processing function
+	// 主处理函数
 	const processNode = (node: TreeNode, depth: number, result: string[]): void => {
 		let nextDepth = depth
 		const depthStr = '\t'.repeat(depth)
@@ -320,6 +352,7 @@ export function flatTreeToString(
 			const isSemantic = keepSemanticTags && node.tagName && SEMANTIC_TAGS.has(node.tagName)
 
 			// Add element with highlight_index
+			// 添加带有高亮索引的元素
 			if (node.highlightIndex !== undefined) {
 				nextDepth += 1
 
@@ -330,6 +363,7 @@ export function flatTreeToString(
 					const attributesToInclude = matchAttributes(node.attributes, includeAttrs)
 
 					// Remove duplicate values (for attributes longer than 5 chars)
+					// 移除重复值（对于长度超过5个字符的属性）
 					const keys = Object.keys(attributesToInclude)
 					if (keys.length > 1) {
 						const keysToRemove = new Set<string>()
@@ -352,11 +386,13 @@ export function flatTreeToString(
 					}
 
 					// Remove role if it matches tagName
+					// 如果 role 与 tagName 匹配则移除
 					if (attributesToInclude.role === node.tagName) {
 						delete attributesToInclude.role
 					}
 
 					// Remove attributes that duplicate text content
+					// 移除与文本内容重复的属性
 					const attrsToRemoveIfTextMatches = ['aria-label', 'placeholder', 'title']
 					for (const attr of attrsToRemoveIfTextMatches) {
 						if (
@@ -375,6 +411,7 @@ export function flatTreeToString(
 				}
 
 				// Build the line
+				// 构建行
 				const highlightIndicator = node.isNew
 					? `*[${node.highlightIndex}]`
 					: `[${node.highlightIndex}]`
@@ -386,6 +423,7 @@ export function flatTreeToString(
 
 				/**
 				 * @edit scrollable 数据
+				 * @edit scrollable data
 				 */
 				if (node.extra) {
 					if (node.extra.scrollable) {
@@ -418,9 +456,12 @@ export function flatTreeToString(
 
 			// special treatment for semantic tags
 			// even if they are not interactive, we can keep them for clear context
+			// 对语义标签的特殊处理
+			// 即使它们不可交互，我们也可以保留它们以提供清晰的上下文
 
 			const emitSemantic = isSemantic && node.highlightIndex === undefined
 			// to check if this tag is empty
+			// 检查此标签是否为空
 			const mark = emitSemantic ? result.length : -1
 
 			if (emitSemantic) {
@@ -434,6 +475,7 @@ export function flatTreeToString(
 
 			if (emitSemantic) {
 				// empty tag should be removed
+				// 空标签应被移除
 				if (result.length === mark + 1) {
 					result.pop()
 				} else {
@@ -442,6 +484,7 @@ export function flatTreeToString(
 			}
 		} else if (node.type === 'text') {
 			// Add text only if it doesn't have a highlighted parent
+			// 仅当没有高亮父节点时才添加文本
 			if (hasParentWithHighlightIndex(node)) {
 				return
 			}
@@ -463,6 +506,7 @@ export function flatTreeToString(
 }
 
 // Get all text until next clickable element
+// 获取直到下一个可点击元素的所有文本
 export const getAllTextTillNextClickableElement = (node: TreeNode, maxDepth = -1): string => {
 	const textParts: string[] = []
 
@@ -472,6 +516,7 @@ export const getAllTextTillNextClickableElement = (node: TreeNode, maxDepth = -1
 		}
 
 		// Skip this branch if we hit a highlighted element (except for the current node)
+		// 如果遇到高亮元素（当前节点除外）则跳过该分支
 		if (
 			currentNode.type === 'element' &&
 			currentNode !== node &&
@@ -537,6 +582,7 @@ export function cleanUpHighlights() {
 }
 
 // 监听 URL 的任何变化，立刻清空 highLights
+// Listen for any URL changes and clear highlights immediately.
 window.addEventListener('popstate', () => {
 	// console.log('URL changed (popstate), highlights cleaned up.')
 	cleanUpHighlights()
@@ -558,6 +604,7 @@ if (navigation && typeof navigation.addEventListener === 'function') {
 	})
 } else {
 	// 定时器
+	// Timer fallback
 	let currentUrl = window.location.href
 	setInterval(() => {
 		if (window.location.href !== currentUrl) {

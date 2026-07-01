@@ -1,6 +1,7 @@
 import { initPageController } from '@/agent/RemotePageController.content'
 
 // import { DEMO_CONFIG } from '@/agent/constants'
+// 从常量中导入 DEMO_CONFIG（已注释）
 
 const DEBUG_PREFIX = '[Content]'
 
@@ -13,13 +14,17 @@ export default defineContentScript({
 		initPageController()
 
 		// if auth token matches, expose agent to page
+		// 如果认证令牌匹配，将代理暴露给页面
 		chrome.storage.local.get('PageAgentExtUserAuthToken').then((result) => {
 			// extension side token.
+			// 扩展侧的令牌。
 			// @note this is isolated world. it is safe to assume user script cannot access it
+			// @note 这是隔离世界，可以安全地假设用户脚本无法访问它
 			const extToken = result.PageAgentExtUserAuthToken
 			if (!extToken) return
 
 			// page side token
+			// 页面侧的令牌
 			const pageToken = localStorage.getItem('PageAgentExtUserAuthToken')
 			if (!pageToken) return
 
@@ -28,8 +33,10 @@ export default defineContentScript({
 			console.log('[PageAgentExt]: Auth tokens match. Exposing agent to page.')
 
 			// add isolated world script
+			// 添加隔离世界的脚本
 			exposeAgentToPage().then(
 				// add main-world script
+				// 添加主世界脚本
 				() => injectScript('/main-world.js')
 			)
 		})
@@ -42,6 +49,7 @@ async function exposeAgentToPage() {
 
 	/**
 	 * singleton MultiPageAgent to handle requests from the page
+	 * 用于处理来自页面请求的单例 MultiPageAgent
 	 */
 	let multiPageAgent: InstanceType<typeof MultiPageAgent> | null = null
 
@@ -57,6 +65,7 @@ async function exposeAgentToPage() {
 		switch (action) {
 			case 'execute': {
 				// singleton check
+				// 单例检查
 				if (multiPageAgent && multiPageAgent.status === 'running') {
 					window.postMessage(
 						{
@@ -75,6 +84,7 @@ async function exposeAgentToPage() {
 					const { systemInstruction, ...agentConfig } = config
 
 					// Dispose old instance before creating new one
+					// 在创建新实例之前销毁旧实例
 					multiPageAgent?.dispose()
 
 					multiPageAgent = new MultiPageAgent({
@@ -83,6 +93,7 @@ async function exposeAgentToPage() {
 					})
 
 					// events
+					// 事件
 
 					multiPageAgent.addEventListener('statuschange', (event) => {
 						if (!multiPageAgent) return
@@ -124,6 +135,7 @@ async function exposeAgentToPage() {
 					})
 
 					// result
+					// 结果
 
 					const result = await multiPageAgent.execute(task)
 

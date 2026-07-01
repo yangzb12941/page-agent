@@ -1,6 +1,8 @@
 /**
  * background logics for RemotePageController
+ * RemotePageController 的后台逻辑
  * - redirect messages from RemotePageController(Agent, extension pages) to ContentScript
+ * - 将来自 RemotePageController（Agent、扩展页面）的消息重定向到 ContentScript
  */
 
 export function handlePageControlMessage(
@@ -21,6 +23,7 @@ export function handlePageControlMessage(
 	}
 
 	// proxy to content script
+	// 代理到 content script
 	chrome.tabs
 		.sendMessage(targetTabId, {
 			type: 'PAGE_CONTROL',
@@ -39,4 +42,5 @@ export function handlePageControlMessage(
 		})
 
 	return true // async response
+	// 异步响应
 }

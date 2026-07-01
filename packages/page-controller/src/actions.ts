@@ -1,6 +1,8 @@
 /**
  * Copyright (C) 2025 Alibaba Group Holding Limited
+ * 版权所有 (C) 2025 阿里巴巴集团控股有限公司
  * All rights reserved.
+ * 保留所有权利。
  */
 import type { InteractiveElementDomNode } from './dom/dom_tree/type'
 import {
@@ -18,7 +20,9 @@ import {
 
 /**
  * Get the HTMLElement by index from a selectorMap.
+ * 从 selectorMap 中根据索引获取 HTMLElement。
  * @private Internal method, subject to change at any time.
+ * @private 内部方法，随时可能变更。
  */
 export function getElementByIndex(
 	selectorMap: Map<number, InteractiveElementDomNode>,
@@ -58,8 +62,12 @@ function blurLastClickedElement() {
  * Simulate a full click following W3C Pointer Events + UI Events spec order:
  * pointerover/enter → mouseover/enter → pointerdown → mousedown → [focus] →
  * pointerup → mouseup → click
+ * 模拟完整的点击操作，遵循 W3C 指针事件 + UI 事件规范顺序：
+ * pointerover/enter → mouseover/enter → pointerdown → mousedown → [focus] →
+ * pointerup → mouseup → click
  *
  * @private Internal method, subject to change at any time.
+ * @private 内部方法，随时可能变更。
  */
 export async function clickElement(element: HTMLElement) {
 	blurLastClickedElement()
@@ -81,8 +89,11 @@ export async function clickElement(element: HTMLElement) {
 
 	// Hit-test to find the deepest element at click coordinates, matching
 	// real browser behavior where events target the innermost element.
+	// 点击坐标处进行命中测试以找到最深层的元素，匹配真实浏览器行为——事件目标为最内层元素。
 	// @note This may hit a element in the blacklist
+	// @note 可能会命中黑名单中的元素
 	// TODO: This is a temporary workaround. Should have been handled during dom extraction.
+	// TODO: 这是一个临时方案，应该在 DOM 提取时处理。
 	const doc = element.ownerDocument
 	await enablePassThrough()
 	const hitTarget = doc.elementFromPoint(x, y)
@@ -100,26 +111,32 @@ export async function clickElement(element: HTMLElement) {
 	const mouseOpts = { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 }
 
 	// Hover — pointer events first, then mouse events (spec order)
+	// 悬停 — 先指针事件，后鼠标事件（规范顺序）
 	target.dispatchEvent(new PointerEvent('pointerover', pointerOpts))
 	target.dispatchEvent(new PointerEvent('pointerenter', { ...pointerOpts, bubbles: false }))
 	target.dispatchEvent(new MouseEvent('mouseover', mouseOpts))
 	target.dispatchEvent(new MouseEvent('mouseenter', { ...mouseOpts, bubbles: false }))
 
 	// Press
+	// 按下
 	target.dispatchEvent(new PointerEvent('pointerdown', pointerOpts))
 	target.dispatchEvent(new MouseEvent('mousedown', mouseOpts))
 
 	// Focus is not part of the standard pointer/mouse event sequence
 	// "undefined and varies between user agents".
+	// 焦点不属于标准指针/鼠标事件序列的一部分，其行为“未定义且因用户代理而异”。
 	// We focus the original element (nearest focusable ancestor), not the hit-test target, matching browser behavior.
+	// 我们聚焦于原始元素（最近的可聚焦祖先），而非命中测试目标，以匹配浏览器行为。
 	element.focus({ preventScroll: true })
 
 	// Release
+	// 释放
 	target.dispatchEvent(new PointerEvent('pointerup', pointerOpts))
 	target.dispatchEvent(new MouseEvent('mouseup', mouseOpts))
 
 	// Click — activation behavior (navigation, form submit, etc.) triggers
 	// via bubbling from target up to the interactive ancestor.
+	// click —— 激活行为（导航、表单提交等）通过从目标冒泡到交互祖先触发。
 	target.click()
 
 	await waitFor(0.2)
@@ -127,6 +144,7 @@ export async function clickElement(element: HTMLElement) {
 
 /**
  * @private Internal method, subject to change at any time.
+ * @private 内部方法，随时可能变更。
  */
 export async function inputTextElement(element: HTMLElement, text: string) {
 	const isContentEditable = element.isContentEditable
@@ -138,19 +156,29 @@ export async function inputTextElement(element: HTMLElement, text: string) {
 
 	if (isContentEditable) {
 		// Contenteditable support (partial)
+		// contenteditable 支持（部分）
 		// Not supported:
+		// 不支持：
 		// - Monaco/CodeMirror: Require direct JS instance access. No universal way to obtain.
+		// - Monaco/CodeMirror：需要直接 JS 实例访问，没有通用获取方式。
 		// - Draft.js: Not responsive to synthetic/execCommand/Range/DataTransfer. Unmaintained.
+		// - Draft.js：对合成事件/execCommand/Range/DataTransfer 无响应，已不再维护。
 		//
 		// Strategy: Try Plan A (synthetic events) first, then verify and fall back
 		// to Plan B (execCommand) if the text wasn't actually inserted.
+		// 策略：先尝试方案 A（合成事件），然后验证，如果文本未实际插入则回退到方案 B (execCommand)。
 		//
 		// Plan A: Dispatch synthetic events
+		// 方案 A：分发合成事件
 		// Works: React contenteditable, Quill.
+		// 适用于：React contenteditable，Quill。
 		// Fails: Slate.js, some contenteditable editors that ignore synthetic events.
+		// 不适用于：Slate.js，某些忽略合成事件的 contenteditable 编辑器。
 		// Sequence: beforeinput -> mutation -> input -> change -> blur
+		// 顺序：beforeinput -> mutation -> input -> change -> blur
 
 		// Dispatch beforeinput + mutation + input for clearing
+		// 分发 beforeinput + mutation + input 用于清除
 		if (
 			element.dispatchEvent(
 				new InputEvent('beforeinput', {
@@ -170,6 +198,7 @@ export async function inputTextElement(element: HTMLElement, text: string) {
 		}
 
 		// Dispatch beforeinput + mutation + input for insertion (important for React apps)
+		// 分发 beforeinput + mutation + input 用于插入（对 React 应用很重要）
 		if (
 			element.dispatchEvent(
 				new InputEvent('beforeinput', {
@@ -191,16 +220,21 @@ export async function inputTextElement(element: HTMLElement, text: string) {
 		}
 
 		// Verify Plan A worked by checking if the text was actually inserted
+		// 通过检查文本是否实际插入来验证方案 A 是否成功
 		const planASucceeded = element.innerText.trim() === text.trim()
 
 		if (!planASucceeded) {
 			// Plan B: execCommand fallback (deprecated but widely supported)
+			// 方案 B：execCommand 回退（已弃用但广泛支持）
 			// Works: Quill, Slate.js, react contenteditable components.
+			// 适用于：Quill，Slate.js，react contenteditable 组件。
 			// This approach integrates with the browser's undo stack and is handled
 			// natively by most rich-text editors.
+			// 此方法与浏览器的撤销栈集成，并被大多数富文本编辑器原生处理。
 			element.focus()
 
 			// Select all existing content and delete it
+			// 选择所有现有内容并删除
 			const doc = element.ownerDocument
 			const selection = (doc.defaultView || window).getSelection()
 			const range = doc.createRange()
@@ -215,15 +249,18 @@ export async function inputTextElement(element: HTMLElement, text: string) {
 		}
 
 		// Dispatch change event (for good measure)
+		// 分发 change 事件（以备不时之需）
 		element.dispatchEvent(new Event('change', { bubbles: true }))
 
 		// Trigger blur for validation
+		// 触发 blur 以进行验证
 		element.blur()
 	} else {
 		getNativeValueSetter(element as HTMLInputElement | HTMLTextAreaElement).call(element, text)
 	}
 
 	// Only dispatch shared input event for non-contenteditable (contenteditable has its own)
+	// 仅为非 contenteditable 分发共享的 input 事件（contenteditable 有自己的）
 	if (!isContentEditable) {
 		element.dispatchEvent(new Event('input', { bubbles: true }))
 	}
@@ -235,7 +272,9 @@ export async function inputTextElement(element: HTMLElement, text: string) {
 
 /**
  * @todo browser-use version is very complex and supports menu tags, need to follow up
+ * @todo browser-use 版本非常复杂且支持菜单标签，需要跟进
  * @private Internal method, subject to change at any time.
+ * @private 内部方法，随时可能变更。
  */
 export async function selectOptionElement(selectElement: HTMLSelectElement, optionText: string) {
 	if (!isSelectElement(selectElement)) {
@@ -253,6 +292,7 @@ export async function selectOptionElement(selectElement: HTMLSelectElement, opti
 	selectElement.dispatchEvent(new Event('change', { bubbles: true }))
 
 	await waitFor(0.1) // Wait to ensure change event processing completes
+	// 等待以确保 change 事件处理完成
 }
 
 interface ScrollableElement extends Element {
@@ -261,21 +301,26 @@ interface ScrollableElement extends Element {
 
 /**
  * @private Internal method, subject to change at any time.
+ * @private 内部方法，随时可能变更。
  */
 export async function scrollIntoViewIfNeeded(element: Element) {
 	const el = element as ScrollableElement
 	if (typeof el.scrollIntoViewIfNeeded === 'function') {
 		el.scrollIntoViewIfNeeded()
 		// await waitFor(0.5) // Animation playback
+		// 动画播放
 	} else {
 		// @todo visibility check
+		// @todo 可见性检查
 		element.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
 		// await waitFor(0.5) // Animation playback
+		// 动画播放
 	}
 }
 
 export async function scrollVertically(scroll_amount: number, element?: HTMLElement | null) {
 	// Element-specific scrolling if element is provided
+	// 如果提供了元素，则进行特定元素的滚动
 	if (element) {
 		const targetElement = element
 		let currentElement = targetElement as HTMLElement | null
@@ -333,6 +378,7 @@ export async function scrollVertically(scroll_amount: number, element?: HTMLElem
 	}
 
 	// Page-level scrolling (default or fallback)
+	// 页面级滚动（默认或回退）
 
 	const dy = scroll_amount
 	const bigEnough = (el: HTMLElement) => el.clientHeight >= window.innerHeight * 0.5
@@ -345,18 +391,26 @@ export async function scrollVertically(scroll_amount: number, element?: HTMLElem
 		)
 
 	// @deprecated Heuristic container search.
+	// @deprecated 启发式容器搜索。
 	// Unreliable in multi-panel layouts. Should guide LLMs to use indexed scroll for consistency.
+	// 在多面板布局中不可靠。应引导 LLM 使用索引滚动以保持一致性。
 	// TODO: remove this fallback
+	// TODO: 移除此回退
 
 	// try to find the nearest scrollable container
+	// 尝试找到最近的可滚动容器
 	// document.activeElement is usually body.
+	// document.activeElement 通常是 body。
 	// After a successful element.focus(), activeElement become the nearest focusable parent
+	// 成功调用 element.focus() 后，activeElement 变为最近的可聚焦父元素
 
 	let el: HTMLElement | null = document.activeElement as HTMLElement | null
 	while (el && !canScroll(el) && el !== document.body) el = el.parentElement
 
 	// Something is wrong if it falls back to global '*' search
+	// 如果回退到全局 '*' 搜索，则说明有问题
 	// TODO: Return error message instead of global '*' search
+	// TODO: 返回错误信息而非全局 '*' 搜索
 
 	el = canScroll(el)
 		? el
@@ -366,6 +420,7 @@ export async function scrollVertically(scroll_amount: number, element?: HTMLElem
 
 	if (el === document.scrollingElement || el === document.documentElement || el === document.body) {
 		// Page-level scroll
+		// 页面级滚动
 		const scrollBefore = window.scrollY
 		const scrollMax = document.documentElement.scrollHeight - window.innerHeight
 
@@ -388,6 +443,7 @@ export async function scrollVertically(scroll_amount: number, element?: HTMLElem
 		return `✅ Scrolled page by ${scrolled}px.`
 	} else {
 		// Container scroll
+		// 容器滚动
 
 		const warningMsg = `The document is not scrollable. Falling back to container scroll.`
 		console.log(`[PageController] ${warningMsg}`)
@@ -420,6 +476,7 @@ export async function scrollVertically(scroll_amount: number, element?: HTMLElem
 
 export async function scrollHorizontally(scroll_amount: number, element?: HTMLElement | null) {
 	// Element-specific scrolling if element is provided
+	// 如果提供了元素，则进行特定元素的水平滚动
 	if (element) {
 		const targetElement = element
 		let currentElement = targetElement as HTMLElement | null
@@ -477,6 +534,7 @@ export async function scrollHorizontally(scroll_amount: number, element?: HTMLEl
 	}
 
 	// Page-level scrolling (default or fallback)
+	// 页面级水平滚动（默认或回退）
 
 	const dx = scroll_amount
 
@@ -490,7 +548,9 @@ export async function scrollHorizontally(scroll_amount: number, element?: HTMLEl
 		)
 
 	// @deprecated Same heuristic container search as scrollVertically.
+	// @deprecated 与 scrollVertically 相同的启发式容器搜索。
 	// TODO: Remove once LLMs reliably use indexed scrolling via data-scrollable.
+	// TODO: 一旦 LLM 可靠地通过 data-scrollable 使用索引滚动后移除。
 
 	let el: HTMLElement | null = document.activeElement as HTMLElement | null
 	while (el && !canScroll(el) && el !== document.body) el = el.parentElement
@@ -503,6 +563,7 @@ export async function scrollHorizontally(scroll_amount: number, element?: HTMLEl
 
 	if (el === document.scrollingElement || el === document.documentElement || el === document.body) {
 		// Page-level scroll
+		// 页面级滚动
 		const scrollBefore = window.scrollX
 		const scrollMax = document.documentElement.scrollWidth - window.innerWidth
 
@@ -526,6 +587,7 @@ export async function scrollHorizontally(scroll_amount: number, element?: HTMLEl
 		return `✅ Scrolled page horizontally by ${scrolled}px.`
 	} else {
 		// Container scroll
+		// 容器滚动
 		const warningMsg = `The document is not scrollable. Falling back to container scroll.`
 		console.log(`[PageController] ${warningMsg}`)
 

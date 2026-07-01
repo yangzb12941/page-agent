@@ -1,16 +1,22 @@
 /**
  * Tab control tools for browser extension
+ * 标签页控制工具，用于浏览器扩展
  *
  * These tools allow the agent to manage multiple browser tabs:
+ * 这些工具允许代理管理多个浏览器标签页：
  * - open_new_tab: Open a new tab and set it as current
+ * - open_new_tab：打开新标签页并将其设为当前标签页
  * - switch_to_tab: Switch to an existing tab
+ * - switch_to_tab：切换到已有标签页
  * - close_tab: Close a tab (optionally switch to another)
+ * - close_tab：关闭标签页（可选择切换到另一个）
  */
 import * as z from 'zod/v4'
 
 import type { TabsController } from './TabsController'
 
 /** Tool definition compatible with PageAgentCore customTools */
+/** 与 PageAgentCore customTools 兼容的工具定义 */
 interface TabTool {
 	description: string
 	inputSchema: z.ZodType
@@ -19,7 +25,9 @@ interface TabTool {
 
 /**
  * Create tab control tools bound to a TabsManager instance.
+ * 创建绑定到 TabsManager 实例的标签页控制工具。
  * These tools are injected into PageAgentCore via customTools config.
+ * 这些工具通过 customTools 配置注入到 PageAgentCore 中。
  */
 export function createTabTools(tabsController: TabsController): Record<string, TabTool> {
 	return {

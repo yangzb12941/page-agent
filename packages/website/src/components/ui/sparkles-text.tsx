@@ -43,6 +43,7 @@ interface SparklesTextProps {
 	 * @type ReactElement
 	 * @description
 	 * The component to be rendered as the text
+	 * 要渲染为文本的组件
 	 * */
 	as?: ReactElement
 
@@ -51,6 +52,7 @@ interface SparklesTextProps {
 	 * @type string
 	 * @description
 	 * The className of the text
+	 * 文本的 className
 	 */
 	className?: string
 
@@ -59,6 +61,7 @@ interface SparklesTextProps {
 	 * @type ReactNode
 	 * @description
 	 * The content to be displayed
+	 * 要显示的内容
 	 * */
 	children: React.ReactNode
 
@@ -67,6 +70,7 @@ interface SparklesTextProps {
 	 * @type number
 	 * @description
 	 * The count of sparkles
+	 * 闪烁星星的数量
 	 * */
 	sparklesCount?: number
 
@@ -75,6 +79,7 @@ interface SparklesTextProps {
 	 * @type string
 	 * @description
 	 * The colors of the sparkles
+	 * 闪烁星星的颜色
 	 * */
 	colors?: {
 		first: string

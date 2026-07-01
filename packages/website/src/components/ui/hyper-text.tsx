@@ -7,20 +7,28 @@ type CharacterSet = string[] | readonly string[]
 
 interface HyperTextProps extends MotionProps {
 	/** The text content to be animated */
+	/** 要动画的文本内容 */
 	children: string
 	/** Optional className for styling */
+	/** 可选的样式类名 */
 	className?: string
 	/** Duration of the animation in milliseconds */
+	/** 动画持续时间（毫秒） */
 	duration?: number
 	/** Delay before animation starts in milliseconds */
+	/** 动画开始前的延迟（毫秒） */
 	delay?: number
 	/** Component to render as - defaults to div */
+	/** 要渲染的组件类型 - 默认为 div */
 	as?: React.ElementType
 	/** Whether to start animation when element comes into view */
+	/** 是否在元素进入视口时开始动画 */
 	startOnView?: boolean
 	/** Whether to trigger animation on hover */
+	/** 是否在悬停时触发动画 */
 	animateOnHover?: boolean
 	/** Custom character set for scramble effect. Defaults to uppercase alphabet */
+	/** 用于扰乱效果的自定义字符集。默认为大写字母表 */
 	characterSet?: CharacterSet
 }
 
@@ -58,6 +66,7 @@ export function HyperText({
 	}
 
 	// Handle animation start based on view or delay
+	// 根据视图或延迟处理动画开始
 	useEffect(() => {
 		if (!startOnView) {
 			const startTimeout = setTimeout(() => {
@@ -86,6 +95,7 @@ export function HyperText({
 	}, [delay, startOnView])
 
 	// Handle scramble animation
+	// 处理扰乱动画
 	useEffect(() => {
 		if (!isAnimating) return
 

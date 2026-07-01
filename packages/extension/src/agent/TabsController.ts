@@ -17,8 +17,11 @@ function sendMessage(message: {
 
 /**
  * Controller for managing browser tabs.
+ * 用于管理浏览器标签页的控制器。
  * - live in the agent env (extension page or content script)
+ * - 存在于代理环境（扩展页面或内容脚本）中
  * - no chrome apis. call sw for tab operations
+ * - 不使用 chrome API。通过 service worker 调用标签页操作
  */
 export class TabsController {
 	currentTabId: number | null = null
@@ -243,12 +246,14 @@ export class TabsController {
 
 	async getTabInfo(tabId: number): Promise<{ title: string; url: string }> {
 		// use cached tab info if available
+		// 如果可用，使用缓存的标签页信息
 		const tabMeta = this.tabs.find((t) => t.id === tabId)
 		if (tabMeta && tabMeta.url && tabMeta.title) {
 			return { title: tabMeta.title, url: tabMeta.url }
 		}
 
 		// otherwise, pull the latest tab info from the background script
+		// 否则，从后台脚本拉取最新的标签页信息
 		debug('getTabInfo: pulling from background script', tabId)
 		const result = await sendMessage({
 			type: 'TAB_CONTROL',
@@ -292,11 +297,16 @@ export class TabsController {
 
 	/**
 	 * Connect to background SW via port to receive tab change events.
+	 * 通过端口连接到后台 Service Worker 以接收标签页变更事件。
 	 *
 	 * @note Port is 1:1 (runtime.connect → background SW has no frames),
+	 * @note 端口是 1:1 的（runtime.connect → 后台 SW 没有框架），
 	 * so onDisconnect fires exactly once and we can safely reconnect.
+	 * 因此 onDisconnect 恰好触发一次，我们可以安全地重新连接。
 	 * Reconnection may miss events during the gap.
+	 * 重新连接可能会在间隙期间错过事件。
 	 * TODO: refresh this.tabs from background after reconnect to stay consistent.
+	 * TODO: 重新连接后从后台刷新 this.tabs 以保持一致性。
 	 */
 	private connectTabEvents() {
 		this.port = chrome.runtime.connect({ name: 'tab-events' })
@@ -392,9 +402,13 @@ function randomColor(): TabGroupColor {
 
 /**
  * Wait until condition becomes true
+ * 等待直到条件变为真
  * @returns Returns when condition becomes true, throws otherwise
+ * @returns 当条件为真时返回，否则抛出
  * @param timeoutMS Timeout in milliseconds, default 1 minutes, throws error on timeout
+ * @param timeoutMS 超时时间（毫秒），默认 1 分钟，超时抛出错误
  * @param error Error object to reject on timeout. If not provided, will resolve with false
+ * @param error 超时时的拒绝错误对象。如果未提供，将 resolve 为 false
  */
 export async function waitUntil(
 	check: () => boolean | Promise<boolean>,

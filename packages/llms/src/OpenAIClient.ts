@@ -1,5 +1,6 @@
 /**
  * OpenAI Client implementation
+ * OpenAI 客户端实现
  */
 import * as z from 'zod/v4'
 
@@ -9,6 +10,7 @@ import { modelPatch, zodToOpenAITool } from './utils'
 
 /**
  * Client for OpenAI compatible APIs
+ * 用于兼容 OpenAI API 的客户端
  */
 export class OpenAIClient implements LLMClient {
 	config: Required<LLMConfig>
@@ -28,9 +30,11 @@ export class OpenAIClient implements LLMClient {
 		abortSignal?.throwIfAborted()
 
 		// 1. Convert tools to OpenAI format
+		// 1. 将工具转换为 OpenAI 格式
 		const openaiTools = Object.entries(tools).map(([name, t]) => zodToOpenAITool(name, t))
 
 		// Build request body
+		// 构建请求体
 
 		let toolChoice: unknown = 'required'
 		if (options?.toolChoiceName && !this.config.disableNamedToolChoice) {
@@ -60,6 +64,7 @@ export class OpenAIClient implements LLMClient {
 		const finalRequestBody = transformedBody ?? requestBody
 
 		// 2. Call API
+		// 2. 调用 API
 		let response: Response
 		try {
 			response = await this.fetch(`${this.config.baseURL}/chat/completions`, {
@@ -78,6 +83,7 @@ export class OpenAIClient implements LLMClient {
 		}
 
 		// 3. Handle HTTP errors
+		// 3. 处理 HTTP 错误
 		if (!response.ok) {
 			let errorData: any
 			try {
@@ -116,6 +122,7 @@ export class OpenAIClient implements LLMClient {
 		}
 
 		// 4. Parse and validate response
+		// 4. 解析并验证响应
 		let data: any
 		try {
 			data = await response.json()
@@ -134,6 +141,7 @@ export class OpenAIClient implements LLMClient {
 		}
 
 		// Check finish_reason
+		// 检查 finish_reason
 		switch (choice.finish_reason) {
 			case 'tool_calls':
 			case 'function_call': // gemini
@@ -163,10 +171,12 @@ export class OpenAIClient implements LLMClient {
 		}
 
 		// Apply normalizeResponse if provided (for fixing format issues automatically)
+		// 如果提供了 normalizeResponse，则应用它（用于自动修复格式问题）
 		const normalizedData = options?.normalizeResponse ? options.normalizeResponse(data) : data
 		const normalizedChoice = (normalizedData as any).choices?.[0]
 
 		// Get tool name from response
+		// 从响应中获取工具名称
 		const toolCallName = normalizedChoice?.message?.tool_calls?.[0]?.function?.name
 		if (!toolCallName) {
 			throw new InvokeError(
@@ -188,6 +198,7 @@ export class OpenAIClient implements LLMClient {
 		}
 
 		// Extract and parse tool arguments
+		// 提取并解析工具参数
 		const argString = normalizedChoice.message?.tool_calls?.[0]?.function?.arguments
 		if (!argString) {
 			throw new InvokeError(
@@ -211,6 +222,7 @@ export class OpenAIClient implements LLMClient {
 		}
 
 		// Validate with schema
+		// 使用模式验证
 		const validation = tool.inputSchema.safeParse(parsedArgs)
 		if (!validation.success) {
 			console.error(z.prettifyError(validation.error))
@@ -224,6 +236,7 @@ export class OpenAIClient implements LLMClient {
 		const toolInput = validation.data
 
 		// 5. Execute tool
+		// 5. 执行工具
 		let toolResult: unknown
 		try {
 			toolResult = await tool.execute(toolInput)
@@ -238,6 +251,7 @@ export class OpenAIClient implements LLMClient {
 		}
 
 		// Return result
+		// 返回结果
 		return {
 			toolCall: {
 				name: toolCallName,

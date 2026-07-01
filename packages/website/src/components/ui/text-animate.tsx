@@ -19,50 +19,62 @@ type AnimationVariant =
 interface TextAnimateProps extends MotionProps {
 	/**
 	 * The text content to animate
+	 * 要动画的文本内容
 	 */
 	children: string
 	/**
 	 * The class name to be applied to the component
+	 * 应用于组件的类名
 	 */
 	className?: string
 	/**
 	 * The class name to be applied to each segment
+	 * 应用于每个片段的类名
 	 */
 	segmentClassName?: string
 	/**
 	 * The delay before the animation starts
+	 * 动画开始前的延迟时间
 	 */
 	delay?: number
 	/**
 	 * The duration of the animation
+	 * 动画的持续时间
 	 */
 	duration?: number
 	/**
 	 * Custom motion variants for the animation
+	 * 动画的自定义运动变体
 	 */
 	variants?: Variants
 	/**
 	 * The element type to render
+	 * 要渲染的元素类型
 	 */
 	as?: ElementType
 	/**
 	 * How to split the text ("text", "word", "character")
+	 * 如何拆分文本（"text"、"word"、"character"）
 	 */
 	by?: AnimationType
 	/**
 	 * Whether to start animation when component enters viewport
+	 * 是否在组件进入视口时开始动画
 	 */
 	startOnView?: boolean
 	/**
 	 * Whether to animate only once
+	 * 是否仅动画一次
 	 */
 	once?: boolean
 	/**
 	 * The animation preset to use
+	 * 要使用的动画预设
 	 */
 	animation?: AnimationVariant
 	/**
 	 * Whether to enable accessibility features (default: true)
+	 * 是否启用可访问性功能（默认：true）
 	 */
 	accessible?: boolean
 }
@@ -414,4 +426,5 @@ const TextAnimateBase = ({
 }
 
 // Export the memoized version
+// 导出记忆化版本
 export const TextAnimate = memo(TextAnimateBase)

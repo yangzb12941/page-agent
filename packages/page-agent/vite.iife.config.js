@@ -8,12 +8,17 @@ import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Load .env from repo root
+// 从仓库根目录加载 .env 文件
 dotenvConfig({ path: resolve(__dirname, '../../.env'), quiet: true })
 
 // UMD Bundle for CDN
+// UMD 打包用于 CDN
 // - alias all local packages so that they can be build in
+// - 为所有本地包设置别名，以便它们可以被构建进来
 // - no external
+// - 不外部化
 // - no d.ts. dts does not work with monorepo aliasing
+// - 不生成 d.ts。dts 不适用于 monorepo 别名
 export default defineConfig(() => ({
 	plugins: [
 		cssInjectedByJsPlugin({ relativeCSSInjection: true }),

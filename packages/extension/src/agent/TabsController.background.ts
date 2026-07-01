@@ -140,7 +140,9 @@ function broadcastTabEvent(message: object) {
 
 /**
  * Port-based tab events: agents connect via `chrome.runtime.connect({ name: 'tab-events' })`
+ * 基于端口的标签页事件：代理通过 `chrome.runtime.connect({ name: 'tab-events' })` 连接
  * and receive tab change events through the port. Works for both extension pages and content scripts.
+ * 并通过该端口接收标签页变更事件。适用于扩展页面和内容脚本。
  */
 export function setupTabEventsPort() {
 	chrome.runtime.onConnect.addListener((port) => {

@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
  * Equivalent to: npm run build --workspaces --if-present
+ * 等同于：npm run build --workspaces --if-present
  *
  * Reads the workspace list from root package.json, filters to those with a
+ * 从根目录 package.json 读取工作区列表，筛选出包含
  * "build" script, and runs them all concurrently via parallelTask.
+ * "build" 脚本的工作区，并通过 parallelTask 并发运行它们。
  */
 import { readFileSync } from 'fs'
 import { dirname, join } from 'path'

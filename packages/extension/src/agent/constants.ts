@@ -1,6 +1,7 @@
 import type { LLMConfig } from '@page-agent/llms'
 
 // Demo LLM for testing
+// 用于测试的演示 LLM
 export const DEMO_MODEL = 'qwen3.5-plus'
 export const DEMO_BASE_URL = 'https://page-ag-testing-ohftxirgbn.cn-shanghai.fcapp.run'
 // export const DEMO_API_KEY = 'NA'
@@ -12,6 +13,7 @@ export const DEMO_CONFIG: LLMConfig = {
 }
 
 /** Legacy testing endpoints that should be auto-migrated to DEMO_BASE_URL */
+/** 应自动迁移到 DEMO_BASE_URL 的旧测试端点 */
 export const LEGACY_TESTING_ENDPOINTS = [
 	'https://hwcxiuzfylggtcktqgij.supabase.co/functions/v1/llm-testing-proxy',
 ]

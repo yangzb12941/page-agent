@@ -13,6 +13,7 @@ interface NeonGradientCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @type ReactElement
 	 * @description
 	 * The component to be rendered as the card
+	 * 要渲染为卡片的组件
 	 * */
 	as?: ReactElement
 	/**
@@ -20,6 +21,7 @@ interface NeonGradientCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @type string
 	 * @description
 	 * The className of the card
+	 * 卡片的 className
 	 */
 	className?: string
 
@@ -28,6 +30,7 @@ interface NeonGradientCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @type ReactNode
 	 * @description
 	 * The children of the card
+	 * 卡片的子元素
 	 * */
 	children?: ReactNode
 
@@ -36,6 +39,7 @@ interface NeonGradientCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @type number
 	 * @description
 	 * The size of the border in pixels
+	 * 边框大小（像素）
 	 * */
 	borderSize?: number
 
@@ -44,6 +48,7 @@ interface NeonGradientCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @type number
 	 * @description
 	 * The size of the radius in pixels
+	 * 圆角大小（像素）
 	 * */
 	borderRadius?: number
 
@@ -52,6 +57,7 @@ interface NeonGradientCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	 * @type string
 	 * @description
 	 * The colors of the neon gradient
+	 * 霓虹渐变颜色
 	 * */
 	neonColors?: NeonColorsProps
 }

@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 /**
  * Full build pipeline. Equivalent to:
+ * 完整构建流水线。相当于：
+ *   npm run cleanup && npm run build --workspaces --if-present
  *   npm run cleanup && npm run build --workspaces --if-present
  *                    && npm run build:website -w @page-agent/website
+ *                    && npm run build:website -w @page-agent/website
+ *                    && npm run zip -w @page-agent/ext
  *                    && npm run zip -w @page-agent/ext
  *
  * 1. cleanup
+ * 1. 清理
  * 2. build everything in parallel (libs + website + extension)
+ * 2. 并行构建所有内容（库 + 网站 + 扩展）
  */
 import chalk from 'chalk'
 import { execSync } from 'child_process'

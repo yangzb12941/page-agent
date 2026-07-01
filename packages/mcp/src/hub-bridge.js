@@ -15,8 +15,11 @@ const launcherTemplate = readFileSync(
 
 /**
  * HTTP + WebSocket bridge to the hub.html extension tab.
+ * HTTP 和 WebSocket 桥接到 hub.html 扩展标签页。
  * - HTTP serves the launcher page (triggers extension to open hub)
+ * - HTTP 提供启动页面（触发扩展程序打开 hub）
  * - WS carries execute/stop commands and result/error responses
+ * - WS 承载执行/停止命令以及结果/错误响应
  */
 export class HubBridge {
 	/** @type {number} */

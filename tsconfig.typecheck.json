@@ -1,9 +1,14 @@
 // Unified typecheck config for all lib/website packages.
+// 所有 lib/website 包的统一类型检查配置。
 // Run: tsc --noEmit -p tsconfig.typecheck.json
+// 运行：tsc --noEmit -p tsconfig.typecheck.json
 // Extension is checked separately (WXT has its own tsconfig base).
+// 扩展程序单独检查（WXT 有自己的 tsconfig 基础）。
 //
 // With source-first package.json exports, TS resolves @page-agent/*
+// 采用源码优先的 package.json exports 时，TS 通过工作区符号链接将 @page-agent/*
 // to sibling src/ via workspace symlinks — no paths mapping needed.
+// 解析到同级 src/ —— 无需额外 paths 映射。
 {
     "extends": "./tsconfig.base.json",
     "compilerOptions": {

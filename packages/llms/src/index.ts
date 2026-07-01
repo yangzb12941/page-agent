@@ -1,3 +1,7 @@
+/**
+ * LLM module entry point
+ * LLM 模块入口点
+ */
 import { OpenAIClient } from './OpenAIClient'
 import { DEFAULT_TEMPERATURE, LLM_MAX_RETRIES } from './constants'
 import { InvokeError, InvokeErrorTypes } from './errors'
@@ -6,8 +10,13 @@ import type { InvokeOptions, InvokeResult, LLMClient, LLMConfig, Message, Tool }
 export { InvokeError, InvokeErrorTypes }
 export type { InvokeOptions, InvokeResult, LLMClient, LLMConfig, Message, Tool }
 
+/**
+ * Parse and validate LLM configuration, filling in defaults.
+ * 解析并验证 LLM 配置，填充默认值。
+ */
 export function parseLLMConfig(config: LLMConfig): Required<LLMConfig> {
 	// Runtime validation as defensive programming (types already guarantee these)
+	// 运行时验证作为防御性编程（类型已保证这些）
 	if (!config.baseURL || !config.model) {
 		throw new Error(
 			'[PageAgent] LLM configuration required. Please provide: baseURL, model. ' +
@@ -24,9 +33,14 @@ export function parseLLMConfig(config: LLMConfig): Required<LLMConfig> {
 		transformRequestBody: config.transformRequestBody ?? ((requestBody) => requestBody),
 		disableNamedToolChoice: config.disableNamedToolChoice ?? false,
 		customFetch: (config.customFetch ?? fetch).bind(globalThis), // fetch will be illegal unless bound
+		// fetch 必须绑定，否则会非法
 	}
 }
 
+/**
+ * LLM class - main interface for invoking language models with tool support.
+ * LLM 类——用于调用支持工具的语言模型的主接口。
+ */
 export class LLM extends EventTarget {
 	config: Required<LLMConfig>
 	client: LLMClient
@@ -36,13 +50,17 @@ export class LLM extends EventTarget {
 		this.config = parseLLMConfig(config)
 
 		// Default to OpenAI client
+		// 默认使用 OpenAI 客户端
 		this.client = new OpenAIClient(this.config)
 	}
 
 	/**
 	 * - call llm api *once*
+	 * - 调用 LLM API *一次*
 	 * - invoke tool call *once*
+	 * - 执行工具调用 *一次*
 	 * - return the result of the tool
+	 * - 返回工具执行的结果
 	 */
 	async invoke(
 		messages: Message[],
@@ -65,6 +83,7 @@ export class LLM extends EventTarget {
 
 /**
  * Retry a function until it succeeds or reaches the maximum number of retries.
+ * 重试一个函数，直到成功或达到最大重试次数。
  */
 async function withRetry<T>(
 	fn: () => Promise<T>,

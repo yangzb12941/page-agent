@@ -1,5 +1,9 @@
 // @ts-check
+
+// 为 chalk 添加类型忽略注释，避免 TypeScript 报错
+// @ts-ignore
 import chalk from 'chalk'
+
 import { dirname, resolve } from 'path'
 import dts from 'unplugin-dts/vite'
 import { fileURLToPath } from 'url'

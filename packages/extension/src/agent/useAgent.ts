@@ -1,5 +1,6 @@
 /**
  * React hook for using AgentController
+ * 用于使用 AgentController 的 React Hook
  */
 import type {
 	AgentActivity,
@@ -15,6 +16,7 @@ import { MultiPageAgent } from './MultiPageAgent'
 import { DEMO_CONFIG, migrateLegacyEndpoint } from './constants'
 
 /** Language preference: undefined means follow system */
+/** 语言偏好：undefined 表示跟随系统 */
 export type LanguagePreference = SupportedLanguage | undefined
 
 export interface AdvancedConfig {
@@ -55,6 +57,7 @@ export function useAgent(): UseAgentResult {
 			const advancedConfig = (result.advancedConfig as AdvancedConfig) ?? {}
 
 			// Auto-migrate legacy testing endpoints
+			// 自动迁移旧测试端点
 			const migrated = migrateLegacyEndpoint(llmConfig)
 			if (migrated !== llmConfig) {
 				llmConfig = migrated

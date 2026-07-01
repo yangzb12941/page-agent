@@ -5,6 +5,8 @@ export * from './autoFixer'
 /**
  * Wait for `seconds`. If a `signal` is provided, the wait is cancellable:
  * aborting rejects with the signal's reason (an `AbortError`).
+ * 等待 `seconds` 秒。如果提供了 `signal`，等待可取消：
+ * 取消时使用信号的 reason（一个 `AbortError`）拒绝 Promise。
  */
 export async function waitFor(seconds: number, signal?: AbortSignal): Promise<void> {
 	if (!signal) {
@@ -20,6 +22,7 @@ export async function waitFor(seconds: number, signal?: AbortSignal): Promise<vo
 		const onAbort = () => {
 			clearTimeout(timer)
 			// reason is a DOMException AbortError.
+			// reason 是一个 DOMException AbortError。
 			reject(signal.reason as DOMException)
 		}
 		signal.addEventListener('abort', onAbort, { once: true })
@@ -27,6 +30,7 @@ export async function waitFor(seconds: number, signal?: AbortSignal): Promise<vo
 }
 
 //
+
 
 export function truncate(text: string, maxLength: number): string {
 	if (text.length > maxLength) {
@@ -36,6 +40,7 @@ export function truncate(text: string, maxLength: number): string {
 }
 
 //
+
 
 export function randomID(existingIDs?: string[]): string {
 	let id = Math.random().toString(36).substring(2, 11)
@@ -69,7 +74,9 @@ const ids = _global.__PAGE_AGENT_IDS__
 
 /**
  * Generate a random ID.
+ * 生成一个随机 ID。
  * @note Unique within this window.
+ * @note 在当前窗口内唯一。
  */
 export function uid() {
 	const id = randomID(ids)
@@ -80,14 +87,17 @@ export function uid() {
 const llmsTxtCache = new Map<string, string | null>()
 
 /** Fetch /llms.txt for a URL's origin. Cached per origin, `null` = tried and not found. */
+/** 获取 URL 来源的 /llms.txt。按来源缓存，`null` 表示尝试过但未找到。 */
 export async function fetchLlmsTxt(url: string): Promise<string | null> {
 	let origin: string
 	try {
 		origin = new URL(url).origin
 	} catch {
 		return null // Invalid URL
+		// 无效 URL
 	}
 	// about:blank, data:, file:
+	// about:blank, data:, file: 等
 	if (origin === 'null') return null
 
 	if (llmsTxtCache.has(origin)) return llmsTxtCache.get(origin)!
@@ -116,9 +126,13 @@ export async function fetchLlmsTxt(url: string): Promise<string | null> {
 
 /**
  * Simple assertion function that throws an error if the condition is falsy
+ * 简单的断言函数，如果条件为假则抛出错误
  * @param condition - The condition to assert
+ * @param condition - 要断言的条件
  * @param message - Optional error message
+ * @param message - 可选的错误信息
  * @throws Error if condition is falsy
+ * @throws 如果条件为假则抛出 Error
  */
 export function assert(condition: unknown, message?: string, silent?: boolean): asserts condition {
 	if (!condition) {
@@ -132,6 +146,7 @@ export function assert(condition: unknown, message?: string, silent?: boolean): 
 
 /**
  * Suppress errors from a function.
+ * 抑制函数中的错误。
  */
 export async function suppress<T>(fn: () => T | Promise<T>): Promise<Awaited<T> | undefined> {
 	try {

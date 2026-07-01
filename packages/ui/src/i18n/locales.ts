@@ -1,4 +1,5 @@
 // English translations (base/reference language)
+// 英文翻译（基础/参考语言）
 const enUS = {
 	ui: {
 		panel: {
@@ -47,6 +48,7 @@ const enUS = {
 } as const
 
 // Chinese translations (must match the structure of enUS)
+// 中文翻译（必须与 enUS 的结构一致）
 const zhCN = {
 	ui: {
 		panel: {
@@ -95,6 +97,7 @@ const zhCN = {
 } as const
 
 // Type definitions generated from English base structure (but with string values)
+// 根据英文基础结构生成的类型定义（但使用字符串值）
 type DeepStringify<T> = {
 	[K in keyof T]: T[K] extends string ? string : T[K] extends object ? DeepStringify<T[K]> : T[K]
 }
@@ -102,6 +105,7 @@ type DeepStringify<T> = {
 export type TranslationSchema = DeepStringify<typeof enUS>
 
 // Utility type: Extract all nested paths from translation object
+// 工具类型：从翻译对象中提取所有嵌套路径
 type NestedKeyOf<ObjectType extends object> = {
 	[Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
 		? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
@@ -109,9 +113,11 @@ type NestedKeyOf<ObjectType extends object> = {
 }[keyof ObjectType & (string | number)]
 
 // Extract all possible key paths from translation structure
+// 从翻译结构中提取所有可能的键路径
 export type TranslationKey = NestedKeyOf<TranslationSchema>
 
 // Parameterized translation types
+// 带参数的翻译类型
 export type TranslationParams = Record<string, string | number>
 
 export const locales = {

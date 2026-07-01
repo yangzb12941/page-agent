@@ -1,5 +1,10 @@
-This is the CSS implementation of ai-motion.
-
-Easy to use but Terrible performance. Causing full screen glitching in some browsers.
-
-Use it only in a small area.
+/**
+ * This is the CSS implementation of ai-motion.
+ * 这是 ai-motion 的 CSS 实现。
+ *
+ * Easy to use but Terrible performance. Causing full screen glitching in some browsers.
+ * 易于使用但性能极差。在某些浏览器中会导致全屏闪烁。
+ *
+ * Use it only in a small area.
+ * 仅在小范围内使用。
+ */

@@ -20,8 +20,11 @@ function sendMessage(message: {
 
 /**
  * Agent side page controller.
+ * Agent 端的页面控制器。
  * - live in the agent env (extension page or content script)
+ * - 存在于代理环境（扩展页面或内容脚本）中
  * - communicates with remote PageController via sw
+ * - 通过 service worker 与远程 PageController 通信
  */
 export class RemotePageController {
 	tabsController: TabsController
@@ -113,6 +116,7 @@ export class RemotePageController {
 	async clickElement(...args: any[]): Promise<DomActionReturn> {
 		const res = await this.remoteCallDomAction('click_element', args)
 		// @note may cause page navigation, wait for 1 second to ensure the page loading started
+		// @note 可能导致页面导航，等待1秒以确保页面加载已开始
 		await new Promise((resolve) => setTimeout(resolve, 1000))
 		return res
 	}
@@ -134,12 +138,16 @@ export class RemotePageController {
 	}
 
 	// `execute_javascript` is intentionally not implemented: AbortSignal cannot cross context
+	// `execute_javascript` 故意未实现：AbortSignal 无法跨上下文传递
 
 	/** @note Managed by content script via storage polling. */
+	/** @note 由内容脚本通过存储轮询管理。 */
 	async showMask(): Promise<void> {}
 	/** @note Managed by content script via storage polling. */
+	/** @note 由内容脚本通过存储轮询管理。 */
 	async hideMask(): Promise<void> {}
 	/** @note Managed by content script via storage polling. */
+	/** @note 由内容脚本通过存储轮询管理。 */
 	dispose(): void {}
 
 	private async remoteCallDomAction(action: string, payload: any[]): Promise<DomActionReturn> {
@@ -171,6 +179,7 @@ interface DomActionReturn {
 
 /**
  * Check if a URL can run content scripts.
+ * 检查 URL 是否可以运行内容脚本。
  */
 export function isContentScriptAllowed(url: string | undefined): boolean {
 	if (!url) return false

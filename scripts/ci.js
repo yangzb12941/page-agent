@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 /**
  * CI check script. Run locally before commit or in GitHub Actions.
+ * CI 检查脚本。在提交前本地运行或在 GitHub Actions 中运行。
  *
  * Usage:
+ * 用法：
  *   node scripts/ci.js            # run all checks
+ *   node scripts/ci.js            # 运行所有检查
  *   node scripts/ci.js --no-build # skip build step
+ *   node scripts/ci.js --no-build # 跳过构建步骤
  */
 import chalk from 'chalk'
 import { execSync } from 'child_process'
