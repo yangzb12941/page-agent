@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import { spawn } from 'child_process'
+import os from 'os'
 
 /**
  * Run multiple shell commands in parallel with progress reporting.
@@ -46,7 +47,11 @@ export async function parallelTask(tasks, options = {}) {
 				new Promise((resolve) => {
 					const chunks = /** @type {Buffer[]} */ ([])
 
-					const child = spawn('sh', ['-c', task.command], {
+					const shell = os.platform() === 'win32' ? 'cmd.exe' : '/bin/sh'
+					const shellArgs =
+						os.platform() === 'win32' ? ['/d', '/s', '/c', task.command] : ['-c', task.command]
+
+					const child = spawn(shell, shellArgs, {
 						cwd: task.cwd,
 						env: { ...process.env, FORCE_COLOR: '1', NO_COLOR: '' },
 						stdio: ['ignore', 'pipe', 'pipe'],

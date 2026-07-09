@@ -15,37 +15,60 @@
  * 2. 并行构建所有内容（库 + 网站 + 扩展）
  */
 import chalk from 'chalk'
-import { execSync } from 'child_process'
+import { spawnSync } from 'child_process'
 import { readFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
-import { parallelTask } from './parallel-task.js'
-
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..')
 const rootPkg = JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf-8'))
 
+const runNpm = (cwd, args) => {
+	const shell = process.platform === 'win32' ? process.env.ComSpec || 'cmd.exe' : '/bin/sh'
+	const shellArgs =
+		process.platform === 'win32'
+			? ['/d', '/s', '/c', `npm ${args.join(' ')}`]
+			: ['-c', `npm ${args.join(' ')}`]
+	const result = spawnSync(shell, shellArgs, {
+		cwd,
+		stdio: 'inherit',
+		env: { ...process.env, FORCE_COLOR: '1', NO_COLOR: '' },
+	})
+	if (result.status !== 0) {
+		throw new Error(`npm ${args.join(' ')} failed with exit code ${result.status}`)
+	}
+}
+
 // Step 1: cleanup
 console.log(chalk.bgBlue.white.bold(' ▸ cleanup '))
-execSync('npm run cleanup', { cwd: rootDir, stdio: 'inherit' })
+runNpm(rootDir, ['run', 'cleanup'])
 
-// Step 2: build all in parallel
+// Step 2: build all in dependency order
 console.log(chalk.bgBlue.white.bold(' ▸ build '))
-const tasks = rootPkg.workspaces
-	.map((ws) => {
-		const dir = join(rootDir, ws)
-		const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf-8'))
-		return pkg.scripts?.build ? { label: pkg.name, command: 'npm run build', cwd: dir } : null
-	})
-	.filter(Boolean)
+const workspaceOrder = [
+	'packages/page-controller',
+	'packages/ui',
+	'packages/llms',
+	'packages/core',
+	'packages/page-agent',
+]
 
-tasks.push(
+for (const ws of workspaceOrder) {
+	const dir = join(rootDir, ws)
+	const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf-8'))
+	if (!pkg.scripts?.build) continue
+	console.log(chalk.bgCyan.black.bold(` ▸ ${pkg.name} `))
+	runNpm(dir, ['run', 'build'])
+}
+
+for (const task of [
 	{
 		label: '@page-agent/website',
-		command: 'npm run build:website',
+		command: ['run', 'build:website'],
 		cwd: join(rootDir, 'packages/website'),
 	},
-	{ label: '@page-agent/ext', command: 'npm run zip', cwd: join(rootDir, 'packages/extension') }
-)
-
-await parallelTask(tasks, { timeoutMs: 120_000 })
+	{ label: '@page-agent/ext', command: ['run', 'zip'], cwd: join(rootDir, 'packages/extension') },
+]) {
+	console.log(chalk.bgCyan.black.bold(` ▸ ${task.label} `))
+	runNpm(task.cwd, task.command)
+}
