@@ -157,13 +157,16 @@ export class PageController extends EventTarget {
 	 * 自动调用 updateTree() 以刷新 DOM 状态。
 	 */
 	async getBrowserState(): Promise<BrowserState> {
+		//获取当前页面的 [url]
 		const url = window.location.href
 		const title = document.title
+		//调用 [getPageInfo] 获取页面尺寸、视口尺寸及滚动位置详情（如 pages_above、pixels_below 等）
 		const pi = getPageInfo()
 		const viewportExpansion = dom.resolveViewportExpansion(this.config.viewportExpansion)
 
+		//同步 DOM 状态：调用 await this.updateTree() 刷新 DOM 树，确保获取的是最新的页面结构。
 		await this.updateTree()
-
+		//将刷新后的简化 HTML 赋值给 [content]，这是 LLM 将要“看到”的主要交互元素内容。
 		const content = this.simplifiedHTML
 
 		// Build header: page info + scroll position hint
@@ -206,6 +209,28 @@ export class PageController extends EventTarget {
 	 * 这是刷新页面状态的主要方法。
 	 * Automatically bypasses mask during DOM extraction if enabled.
 	 * 如果启用了遮罩，在 DOM 提取期间会自动绕过遮罩。
+	 *
+	 * 这段代码定义了 PageController 中的 updateTree 方法，它是整个 Agent 系统中负责“感知”页面状态的核心方法。
+	 * 其主要作用是将复杂的真实 DOM 结构转换为 AI（LLM）易于理解的简化格式，并建立操作索引。
+	 *
+	 * 具体逻辑步骤如下：
+	 *
+	 * 1、生命周期与时间记录：
+	 * 触发 beforeUpdate 事件，并记录当前时间戳到 lastTimeUpdate。
+	 * 2、临时穿透 Mask（遮罩层）：
+	 * 如果启用了遮罩，将其样式设置为 pointerEvents = 'none'，使其不干扰后续的 DOM 提取过程。
+	 * 3、清理与过滤：
+	 * 清除页面上旧的高亮标记（cleanUpHighlights）。
+	 * 构建黑名单：结合配置项和带有 [data-page-agent-not-interactive] 属性的元素（如 React 根节点），防止 AI 误操作这些关键区域。
+	 * 4、提取与转换（核心）：
+	 * 调用 dom.getFlatTree 获取扁平化的 DOM 树。
+	 * 调用 dom.flatTreeToString 将其转换为简化版 HTML 字符串 (this.simplifiedHTML)。这是发送给 LLM 的主要“视觉”数据。
+	 * 5、建立索引映射：
+	 * 更新 selectorMap（索引 -> DOM 元素）和 elementTextMap（索引 -> 文本描述）。
+	 * 标记 isIndexed = true，表示 DOM 树已就绪，AI 后续可以根据这些索引执行具体的点击或输入操作。
+	 * 6、恢复 Mask 与完成：
+	 * 恢复遮罩层的 pointerEvents = 'auto'，重新启用拦截保护。
+	 * 触发 afterUpdate 事件，并返回简化后的 HTML 字符串。
 	 */
 	async updateTree(): Promise<string> {
 		this.dispatchEvent(new Event('beforeUpdate'))
@@ -214,6 +239,17 @@ export class PageController extends EventTarget {
 
 		// Temporarily bypass mask to allow DOM extraction
 		// 临时绕过遮罩以允许 DOM 提取
+		/**
+		 * 这句代码的作用是临时让遮罩层（Mask）变为“穿透”状态，以便顺利提取底层 DOM 元素。
+		 * 具体细节如下：
+		 * 解除事件拦截： SimulatorMask 默认处于激活状态时会拦截所有鼠标和键盘事件（pointerEvents = 'auto'），以防止用户在 AI 操作时干扰页面。
+		 * 将 pointerEvents 设置为 'none' 会使得鼠标事件直接穿透遮罩层，作用于底层页面元素。
+		 *
+		 * 确保 DOM 提取准确： 在执行 dom.getFlatTree() 遍历页面结构之前，必须暂时屏蔽遮罩层的物理阻挡效果。
+		 * 这能确保脚本能够无障碍地读取、查询和索引真实的页面元素，而不会被顶层的遮罩 div 干扰。
+		 *
+		 * 生命周期管理： 这是一个临时操作。在代码的后续部分（DOM 提取完成后），该属性会被恢复为 'auto'，从而恢复遮罩的拦截保护功能。
+		 */
 		if (this.mask) {
 			this.mask.wrapper.style.pointerEvents = 'none'
 		}

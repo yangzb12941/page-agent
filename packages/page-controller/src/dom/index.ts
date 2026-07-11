@@ -183,30 +183,43 @@ interface TreeNode {
 /**
  * 对应 python 中的 views::clickable_elements_to_string,
  * 将 dom 信息处理成适合 llm 阅读的文本格式
- * Corresponds to views::clickable_elements_to_string in Python,
- * processes DOM information into a text format suitable for LLM reading.
- * @形如
- * @Example
- * ``` text
- * [0]<a aria-label=page-agent.js 首页 />
- * [1]<div >P />
- * [2]<div >page-agent.js
- * UI Agent in your webpage />
- * [3]<a >文档 />
- * [4]<a aria-label=查看源码（在新窗口打开）>源码 />
- * UI Agent in your webpage
- * 用户输入需求，AI 理解页面并自动操作。
- * [5]<a role=button>快速开始 />
- * [6]<a role=button>查看文档 />
- * 无需后端
- * ```
  * 其中可交互元素用序号标出，提示llm可以用序号操作。
  * Interactive elements are marked with numbers, prompting the LLM to use those numbers.
  * 缩进代表父子关系。
  * Indentation represents parent-child relationships.
  * 普通文本则直接列出来。
  * Plain text is listed directly.
+ * 这段代码定义了 flatTreeToString 函数，它是整个 Agent 系统中负责将 DOM 结构“翻译”给 LLM 阅读的核心渲染器。
  *
+ * 它的主要作用是将复杂的扁平化 DOM 树（FlatDomTree）转换为简洁、结构化的纯文本字符串，以便发送给大模型进行分析和决策。
+ *
+ * 具体处理逻辑如下：
+ *
+ * 1. 提取可交互元素并分配索引（核心）
+ * 目的：让 LLM 能够通过序号精确操作页面元素。
+ * 逻辑：遍历 DOM 树，如果发现某个元素是可交互的（highlightIndex 存在），会将其格式化为 [index]<tag attributes>text /> 的形式。
+ * 示例：[12]<button type="submit">登录</button> 表示这是一个可点击的按钮，索引为 12。
+ * 新元素标记：如果是新出现的元素（isNew 为 true），索引前会加星号，如 *[12]，提示 LLM 这是一个新增项。
+ * 2. 属性过滤与优化（去噪）
+ * 保留关键属性：仅保留对 LLM 理解元素有用的属性（如 aria-label, role, placeholder, checked 等），忽略大量无用的样式或内部属性，以节省 Token。
+ * 去重处理：
+ * 如果属性值与元素的可见文本内容相同（例如 aria-label="登录" 且文本也是“登录”），则移除属性，避免冗余。
+ * 如果 role 与标签名相同（如 <div role="div">），则移除 role。
+ * 截断过长的属性值（限制为 20 字符）。
+ * 3. 保留语义结构
+ * 缩进层级：通过 \t 缩进展示 DOM 的父子层级关系。
+ * 语义标签：如果开启了 keepSemanticTags，即使某些标签（如 <nav>, <header>, <footer>）不可交互，也会保留它们作为结构锚点，帮助 LLM 理解页面布局（例如区分导航栏和正文）。
+ * 4. 文本处理
+ * 关联文本：提取元素内部或邻近的文本描述（getAllTextTillNextClickableElement），让 LLM 知道按钮上写了什么。
+ * 避免重复：如果父元素已经是可交互元素，则不再单独输出子节点的文本，防止内容重复刷屏。
+ * 总结
+ * 该函数的输出结果类似于：
+ *
+ * text
+ * [0]<a href="/home">首页</a>
+ * [1]<input type="text" placeholder="输入搜索内容" />
+ * ... 100 pixels below ...
+ * 这种格式极大地降低了 LLM 理解网页的难度，使其能迅速定位到 [0] 或 [1] 并执行对应的指令。
  * @todo 数据脱敏过滤器
  * @todo Data desensitization filter
  */
@@ -284,8 +297,7 @@ export function flatTreeToString(
 				for (const childId of elementNode.children) {
 					const child = buildTreeNode(childId)
 					if (child) {
-						child.parent = null // Will be set later
-						// 稍后设置
+						child.parent = null // Will be set later 稍后设置
 						children.push(child)
 					}
 				}

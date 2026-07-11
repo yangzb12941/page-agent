@@ -5,6 +5,29 @@ import { isPageDark } from './checkDarkMode'
 import styles from './SimulatorMask.module.css'
 import cursorStyles from './cursor.module.css'
 
+/**
+ * 主要功能模块如下：
+ * 页面遮罩层 (Mask Wrapper)：
+ * 在 document.body 中创建一个全屏的 div 容器，用于覆盖底层页面。
+ * 添加 data-browser-use-ignore 属性，避免被浏览器自动捕获。添加 data-page-agent-ignore 等属性，避免被其他自动化脚本重复捕获。
+ * 可选地集成 ai-motion 动画效果（支持深色/浅色模式）。
+ * 拦截交互事件：通过 stopPropagation() 和 preventDefault() 阻止所有鼠标、滚轮和键盘事件传递给底层页面，确保模拟过程的独立性。
+ *
+ * 全局事件通信：
+ * 通过监听自定义事件（如 PageAgent::MovePointerTo、PageAgent::ClickPointer 等）接收外部控制指令。
+ * 支持动态切换穿透模式（pointerEvents = 'none' / 'auto'），在需要时允许事件穿透遮罩层与底层页面交互。
+ *
+ * AI 虚拟光标 (Cursor)：
+ * 自定义游标由多个 CSS 层组成（边框、填充、点击涟漪效果）。
+ * 平滑移动算法：使用 requestAnimationFrame 和缓动系数（0.2）实现光标从当前位置向目标位置的平滑过渡动画。
+ * 提供 triggerClickAnimation() 方法触发点击时的视觉反馈动画。
+ *
+ * 生命周期与状态控制：
+ * show()：显示遮罩层，启动动画，初始化光标位置。
+ * hide()：隐藏遮罩层，停止动画并淡出。
+ * dispose()：销毁实例，清理动画资源，移除 DOM 元素，并移除全局事件监听器。
+ * 应用场景：通常配合 AI Agent 使用，当 AI 需要自动浏览或操作网页时，显示 AI 的“虚拟手”在页面上移动和点击，同时屏蔽用户的真实输入干扰。
+ */
 export class SimulatorMask extends EventTarget {
 	shown: boolean = false
 	wrapper = document.createElement('div')
@@ -130,6 +153,10 @@ export class SimulatorMask extends EventTarget {
 		this.wrapper.appendChild(this.#cursor)
 	}
 
+	//AI 虚拟光标 (Cursor)：
+	// 自定义游标由多个 CSS 层组成（边框、填充、点击涟漪效果）。
+	// 平滑移动算法：使用 requestAnimationFrame 和缓动系数（0.2）实现光标从当前位置向目标位置的平滑过渡动画。
+	// 提供 triggerClickAnimation() 方法触发点击时的视觉反馈动画。
 	#moveCursorToTarget() {
 		if (this.#disposed) return
 
