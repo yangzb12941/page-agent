@@ -33,6 +33,28 @@ export interface PanelConfig {
  * This separation ensures data consistency - history is the single source of truth
  * for what has been done, while activity shows what is happening now.
  * 这种分离确保了数据一致性 - 历史是已完成事件的唯一真实来源，而活动则显示当前正在发生的事情。
+ *
+ * Panel.ts 文件实现了一个代理控制面板（Agent Control Panel），它是一个可视化的 UI 组件，用于监控、控制和展示 AI Agent 在网页上的运行状态和历史操作。
+ * 该文件的核心作用是作为 Agent 的“视图层”，将底层的逻辑执行过程转化为用户可理解的界面元素。
+ *
+ * 具体功能模块如下：
+ *
+ * 1、实时状态监控与反馈：
+ * 状态指示器：通过 statuschange 事件监听 Agent 状态（如 running, completed, error），并实时更新 UI 指示器的颜色和文本。
+ * 活动反馈（Activity）：通过 activity 事件获取 Agent 当前的瞬时行为（如“正在思考”、“正在点击索引为 3 的按钮”），并在标题栏提供平滑的动画过渡显示。
+ *
+ * 2、历史记录可视化：
+ * 历史列表渲染：利用 renderHistory 方法，将 Agent 的执行历史（包括任务目标、反思内容、工具调用、观察结果等）转换为一系列卡片展示在面板中。
+ * 这种设计确保了“历史”作为已完成事件的单一事实来源，保证了数据的一致性。
+ *
+ * 3、用户交互控制：
+ * 任务输入：提供输入框供用户下达初始任务或在任务结束后输入新任务（execute）。
+ * 问答交互：当 Agent 需要用户确认或提供信息时（ask_user），面板会展示临时问题卡片并收集用户输入（#askUser）。
+ * 运行控制：提供停止（Stop）和关闭（Close/Dispose）按钮，允许用户在任务运行中随时中断或清理面板。
+ *
+ * 4、架构设计与解耦：
+ * 适配器模式：通过 PanelAgentAdapter 接口与具体的 Agent 实现解耦，使得该 UI 面板可以复用于不同底层逻辑的 Agent。
+ * 动画与国际化：内置了文本变化的淡入淡出动画效果，并支持通过 I18n 类进行多语言切换。
  */
 export class Panel {
 	#wrapper: HTMLElement

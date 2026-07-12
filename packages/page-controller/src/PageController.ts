@@ -466,6 +466,16 @@ export class PageController extends EventTarget {
 	 * The optional `signal` is exposed to the script scope so cooperative code
 	 * can abort promptly when the task is stopped.
 	 * 可选的 `signal` 会暴露到脚本作用域中，以便协作式代码能在任务停止时及时中止。
+	 *
+	 * AbortSignal 是 Web API 提供的一个标准对象，主要用于监听和响应异步操作的“中止”请求。
+	 * 在 PageController 的 executeJavascript 方法中，它的具体作用如下：
+	 *
+	 * 协作式中断： 它允许外部（如 AI 控制端）通过调用 abort() 来通知正在执行的自定义脚本停止运行。这在任务超时或用户手动停止 AI 时非常关键。
+	 *
+	 * 安全控制： 代码通过 eval 执行任意脚本，如果没有中止机制，一旦脚本包含死循环或长时间运行的操作，可能会导致页面卡死。
+	 * 通过暴露 signal，脚本内部可以检查 signal.aborted 状态来决定何时退出循环。
+	 *
+	 * 统一资源管理： 它提供了一种标准的异步取消模式，使得 AI Agent 能够在一个复杂的自动化流程中精确控制每一步的执行周期。
 	 */
 	async executeJavascript(script: string, signal?: AbortSignal): Promise<ActionResult> {
 		try {
