@@ -19,6 +19,35 @@ import {
 } from './utils'
 
 /**
+ * actions.ts 文件是 Page Agent 系统中负责执行具体页面操作的工具集。它提供了一系列底层的 DOM 交互方法，将 AI 的抽象指令转化为真实的浏览器事件。
+ * 主要功能模块如下：
+ * 1. 元素定位与获取
+ * getElementByIndex：从索引映射表（selectorMap）中安全地获取对应的 HTMLElement。如果找不到或类型不匹配，会抛出明确的错误。
+ *
+ * 2. 鼠标点击模拟 (clickElement)
+ * 这是最复杂的操作之一，它严格遵循 W3C 指针事件规范，模拟真实用户的点击行为：
+ * 事件序列：按顺序触发 pointerover → mouseover → pointerdown → mousedown → focus → pointerup → mouseup → click。
+ * 命中测试 (Hit-test)：使用 elementFromPoint 找到点击坐标下最深层的实际元素，确保事件触发在正确的子元素上（例如点击按钮内部的图标）。
+ * 自动滚动：确保元素在视口可见后再执行点击。
+ *
+ * 3. 文本输入 (inputTextElement)
+ * 针对不同输入场景提供策略：
+ * 标准输入框：使用原生赋值方法 getNativeValueSetter 修改 value 属性，并触发 input 事件。
+ * ContentEditable 富文本：这是难点。代码采用“两步走”策略：
+ * Plan A：发送合成事件 (InputEvent('beforeinput'))，适用于 React 等现代框架。
+ * Plan B：如果 Plan A 失败（文本未实际插入），则使用已弃用但兼容性极强的 execCommand 进行回退，确保在 Slate.js 等编辑器中也能成功输入。
+ *
+ * 4. 下拉选项选择 (selectOptionElement)
+ * 根据文本内容查找匹配的 <option>，更新 <select> 的值并手动触发 change 事件，以便页面框架（如 Vue/React）感知到值的变化。
+ *
+ * 5. 滚动控制 (scrollVertically / scrollHorizontally)
+ * 智能容器查找：如果提供了特定元素，它会向上遍历父节点寻找最近的可滚动容器（检查 overflow 和 scrollHeight）。
+ * 回退机制：如果找不到特定容器，则回退到全局页面滚动 (window.scrollBy)。
+ * 边界检测：检测是否已经滚动到顶部/底部/左侧/右侧，并返回相应的提示信息（如 "Already at the bottom"），帮助 AI 判断当前状态。
+ * 总结
+ * 该文件是 Agent 的“手和脚”。它不只是简单地调用 element.click()，而是通过极其严谨的事件分发序列和边界处理，确保在各种复杂的现代前端框架（React, Vue, 各种富文本编辑器）下，自动化操作都能像真人一样稳定执行。
+ */
+/**
  * Get the HTMLElement by index from a selectorMap.
  * 从 selectorMap 中根据索引获取 HTMLElement。
  * @private Internal method, subject to change at any time.
